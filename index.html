@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Zgłoś awarię dostępu</title>
+<style>
+  :root{
+    --ink:#141414;
+    --paper:#f5f3ef;
+    --amber:#c9781f;
+    --amber-dark:#8a4e10;
+    --red:#a3291d;
+    --line:#dcd6c8;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+  }
+  .wrap{ width:100%; max-width:480px; padding:20px 18px 40px; }
+  header{ padding:6px 0 18px; border-bottom:3px solid var(--ink); margin-bottom:20px; }
+  .eyebrow{ font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--amber-dark); font-weight:700; margin:0 0 6px; }
+  h1{ font-size:25px; line-height:1.15; margin:0 0 4px; font-weight:800; }
+  .sub{ font-size:14px; color:#5b5648; margin:0; }
+
+  .crumb{ font-size:12px; color:#8a8474; margin-bottom:12px; font-weight:600; min-height:16px; }
+  .crumb button{
+    background:none; border:none; padding:0; color:var(--amber-dark);
+    font-weight:700; font-size:12px; text-decoration:underline; cursor:pointer;
+  }
+
+  .screen{display:none;}
+  .screen.active{display:block;}
+
+  .grid{ display:grid; gap:10px; margin-top:4px; }
+  .grid.cols2{ grid-template-columns:1fr 1fr; }
+
+  .opt-btn{
+    text-align:left; width:100%; border:2px solid var(--ink); background:#fff;
+    border-radius:10px; padding:16px 14px; font-size:16px; font-weight:700; color:var(--ink);
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    cursor:pointer; -webkit-tap-highlight-color:transparent;
+  }
+  .opt-btn .sub-range{ display:block; font-size:11px; font-weight:600; color:#8a8474; margin-top:2px; }
+  .opt-btn:active{ background:var(--amber); border-color:var(--amber-dark); color:#fff; }
+  .opt-btn:active .sub-range{ color:#fff2df; }
+  .opt-btn .arrow{ font-size:20px; opacity:.5; }
+  .opt-btn:active .arrow{ opacity:1; }
+
+  .opt-btn.letter{ text-align:center; flex-direction:column; padding:18px 8px; }
+  .opt-btn.letter .big{ font-size:22px; }
+
+  .selected-box{
+    border:2px solid var(--amber-dark); background:#fff7ea; border-radius:10px;
+    padding:14px; margin-bottom:16px;
+  }
+  .selected-box .label{ font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--amber-dark); font-weight:700; margin:0 0 2px; }
+  .selected-box .val{ font-size:16px; font-weight:800; margin:0; line-height:1.3; }
+
+  label{ display:block; font-size:13px; font-weight:700; margin:14px 0 6px; }
+  input[type=text], textarea{
+    width:100%; border:2px solid var(--line); border-radius:8px; padding:11px 12px;
+    font-size:16px; font-family:inherit; background:#fff; color:var(--ink);
+  }
+  textarea{ min-height:80px; resize:vertical; }
+  input:focus, textarea:focus{ outline:none; border-color:var(--amber-dark); }
+
+  .send-btn{
+    width:100%; margin-top:20px; background:var(--red); color:#fff; border:none;
+    border-radius:10px; padding:17px; font-size:17px; font-weight:800; letter-spacing:.02em; cursor:pointer;
+  }
+  .send-btn:active{ background:#7d2016; }
+
+  .hint{ font-size:12px; color:#7a7566; margin-top:10px; text-align:center; }
+  footer{ margin-top:28px; padding-top:14px; border-top:1px solid var(--line); font-size:11px; color:#9a9484; text-align:center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Osiedle · Zgłoszenia</p>
+    <h1>Zgłoś awarię<br>domofonu / dostępu</h1>
+    <p class="sub">Wybierz miejsce awarii. Otworzy się gotowy e‑mail — wystarczy wysłać.</p>
+  </header>
+
+  <div class="crumb" id="crumb"></div>
+
+  <div class="screen active" id="screen-start">
+    <div class="grid" id="startGrid"></div>
+  </div>
+
+  <div class="screen" id="screen-gate">
+    <div class="grid" id="gateGrid"></div>
+  </div>
+
+  <div class="screen" id="screen-klatka">
+    <div class="grid cols2" id="klatkaGrid"></div>
+  </div>
+
+  <div class="screen" id="screen-side">
+    <div class="grid" id="sideGrid"></div>
+  </div>
+
+  <div class="screen" id="screen-details">
+    <div class="selected-box">
+      <p class="label">Zgłaszana awaria</p>
+      <p class="val" id="selVal">—</p>
+    </div>
+
+    <label for="flat">Twoje mieszkanie (opcjonalnie)</label>
+    <input type="text" id="flat" placeholder="np. mieszkanie 54">
+
+    <label for="details">Dodatkowe informacje (opcjonalnie)</label>
+    <textarea id="details" placeholder="np. nie reaguje na kod, panel nie świeci, drzwi nie domykają się"></textarea>
+
+    <button class="send-btn" onclick="sendReport()">Wyślij zgłoszenie mailem →</button>
+    <p class="hint">Otworzy się Twoja aplikacja pocztowa z gotową treścią.</p>
+    <a id="fallbackLink" href="#" style="display:none; text-align:center; margin-top:10px; font-size:13px; font-weight:700; color:var(--amber-dark); text-decoration:underline;">
+      Nie otworzyło się? Kliknij tutaj →
+    </a>
+  </div>
+
+  <footer>Zgłoszenie trafia bezpośrednio do serwisu systemu dostępu.</footer>
+</div>
+
+<script>
+  const REPORT_EMAIL = "fermax@fermax.pl";
+
+  const BUILDINGS = {
+    "Podskarbińska 30": ["A","B","C","D","E"],
+    "Siennicka 29B": ["A","B","C","D","E","F","G"]
+  };
+
+  const RANGES = {
+    "Podskarbińska 30": { A:"1–20", B:"21–43", C:"44–61", D:"62–79", E:"80–103" },
+    "Siennicka 29B": { A:"1–18", B:"19–47", C:"48–65", D:"66–83", E:"84–95", F:"96–119", G:"120–137" }
+  };
+
+  const GATES = [
+    "Furtka wejściowa na osiedle – od ul. Podskarbińskiej",
+    "Furtka wejściowa na osiedle – od ul. Siennickiej"
+  ];
+
+  let state = { building:null, klatka:null };
+  let selectedLocation = "";
+
+  function showScreen(id){
+    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+    window.scrollTo(0,0);
+    updateCrumb(id);
+  }
+
+  function updateCrumb(id){
+    const c = document.getElementById("crumb");
+    c.innerHTML = id==="screen-start" ? "" : `<button onclick="goStart()">← Początek</button>`;
+  }
+
+  function goStart(){ state={building:null,klatka:null}; showScreen("screen-start"); }
+
+  function buildStart(){
+    const grid = document.getElementById("startGrid");
+    const items = ["Furtka wejściowa na osiedle", ...Object.keys(BUILDINGS)];
+    items.forEach(label=>{
+      const btn = document.createElement("button");
+      btn.className = "opt-btn";
+      btn.innerHTML = `<span>${label}</span><span class="arrow">›</span>`;
+      btn.onclick = ()=> {
+        if(label==="Furtka wejściowa na osiedle") showGateScreen();
+        else showKlatkaScreen(label);
+      };
+      grid.appendChild(btn);
+    });
+  }
+
+  function showGateScreen(){
+    const grid = document.getElementById("gateGrid");
+    grid.innerHTML = "";
+    GATES.forEach(g=>{
+      const btn = document.createElement("button");
+      btn.className = "opt-btn";
+      btn.innerHTML = `<span>${g}</span><span class="arrow">›</span>`;
+      btn.onclick = ()=> finishSelection(g);
+      grid.appendChild(btn);
+    });
+    showScreen("screen-gate");
+  }
+
+  function showKlatkaScreen(building){
+    state.building = building;
+    const grid = document.getElementById("klatkaGrid");
+    grid.innerHTML = "";
+    BUILDINGS[building].forEach(letter=>{
+      const btn = document.createElement("button");
+      btn.className = "opt-btn letter";
+      btn.innerHTML = `<span class="big">Klatka ${letter}</span><span class="sub-range">mieszkania ${RANGES[building][letter]}</span>`;
+      btn.onclick = ()=> showSideScreen(letter);
+      grid.appendChild(btn);
+    });
+    showScreen("screen-klatka");
+  }
+
+  function showSideScreen(letter){
+    state.klatka = letter;
+    const grid = document.getElementById("sideGrid");
+    grid.innerHTML = "";
+    const options = ["Drzwi wejściowe od ulicy", "Wejście z poziomu garażu podziemnego"];
+    options.forEach(opt=>{
+      const btn = document.createElement("button");
+      btn.className = "opt-btn";
+      btn.innerHTML = `<span>${opt}</span><span class="arrow">›</span>`;
+      btn.onclick = ()=> finishSelection(`${state.building} – Klatka ${state.klatka} – ${opt}`);
+      grid.appendChild(btn);
+    });
+    showScreen("screen-side");
+  }
+
+  function finishSelection(locationText){
+    selectedLocation = locationText;
+    document.getElementById("selVal").textContent = locationText;
+    showScreen("screen-details");
+  }
+
+  function sendReport(){
+    const flat = document.getElementById("flat").value.trim();
+    const details = document.getElementById("details").value.trim();
+    const now = new Date();
+    const dateStr = now.toLocaleDateString("pl-PL") + " " + now.toLocaleTimeString("pl-PL",{hour:"2-digit",minute:"2-digit"});
+
+    const subject = `Awaria dostępu – ${selectedLocation}`;
+    let body = `Zgłaszam awarię systemu dostępu.\n\n`;
+    body += `Lokalizacja: ${selectedLocation}\n`;
+    body += `Data i godzina zgłoszenia: ${dateStr}\n`;
+    if(flat) body += `Zgłaszający (mieszkanie): ${flat}\n`;
+    if(details) body += `Dodatkowe informacje: ${details}\n`;
+    body += `\nProszę o pilną interwencję.\n\nZgłoszenie wysłane przez system QR dla mieszkańców.`;
+
+    const mailto = `mailto:${REPORT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+    // Klikamy prawdziwy link <a> zamiast ustawiać window.location —
+    // bardziej niezawodne na przeglądarkach mobilnych (iOS Safari, Chrome Android).
+    const link = document.createElement("a");
+    link.href = mailto;
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Zapasowy widoczny link, gdyby powyższe i tak nie odpaliło aplikacji pocztowej
+    const fallback = document.getElementById("fallbackLink");
+    fallback.href = mailto;
+    fallback.style.display = "block";
+  }
+
+  buildStart();
+</script>
+</body>
+</html>
