@@ -235,12 +235,14 @@
     const dateStr = now.toLocaleDateString("pl-PL") + " " + now.toLocaleTimeString("pl-PL",{hour:"2-digit",minute:"2-digit"});
 
     const subject = `Awaria dostępu – ${selectedLocation}`;
-    let body = `Zgłaszam awarię systemu dostępu.\n\n`;
+    let body = `Dzień dobry,\n\n`;
+    body += `Zgłaszam awarię systemu dostępu.\n\n`;
+    body += `Osiedle: Mały Grochów\n`;
     body += `Lokalizacja: ${selectedLocation}\n`;
     body += `Data i godzina zgłoszenia: ${dateStr}\n`;
     if(flat) body += `Zgłaszający (mieszkanie): ${flat}\n`;
     if(details) body += `Dodatkowe informacje: ${details}\n`;
-    body += `\nProszę o pilną interwencję.\n\nZgłoszenie wysłane przez system QR dla mieszkańców.`;
+    body += `\nProszę o pilną interwencję.\n\nPozdrawiam`;
 
     const mailto = `mailto:${REPORT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
